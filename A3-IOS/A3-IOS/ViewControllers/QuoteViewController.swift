@@ -152,11 +152,17 @@ final class QuoteViewController: UIViewController {
 
     private func toggleInclude(for lineItem: QuoteLineItem, included: Bool) {
         // A quote line maps to either a window item or a floor-space item, never both.
-        let updatedWindow = updateWindowInclusion(lineItemId: lineItem.id, included: included)
-        let updatedFloor = !updatedWindow && updateFloorInclusion(lineItemId: lineItem.id, included: included)
-        if updatedWindow || updatedFloor {
+        if updateWindowInclusion(lineItemId: lineItem.id, included: included) {
             refreshQuote()
+            return
         }
+
+        if updateFloorInclusion(lineItemId: lineItem.id, included: included) {
+            refreshQuote()
+            return
+        }
+
+        showMessage("Could not update quote item. Please refresh and try again.")
     }
 
     private func updateWindowInclusion(lineItemId: String, included: Bool) -> Bool {
