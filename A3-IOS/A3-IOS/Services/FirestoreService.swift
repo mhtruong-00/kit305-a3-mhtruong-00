@@ -407,8 +407,13 @@ final class FirestoreService {
                 group.leave()
                 return
             }
+            let documents = snapshot?.documents ?? []
+            guard !documents.isEmpty else {
+                group.leave()
+                return
+            }
             let batch = self.db.batch()
-            snapshot?.documents.forEach { batch.deleteDocument($0.reference) }
+            documents.forEach { batch.deleteDocument($0.reference) }
             batch.commit { _ in group.leave() }
         }
 
@@ -418,8 +423,13 @@ final class FirestoreService {
                 group.leave()
                 return
             }
+            let documents = snapshot?.documents ?? []
+            guard !documents.isEmpty else {
+                group.leave()
+                return
+            }
             let batch = self.db.batch()
-            snapshot?.documents.forEach { batch.deleteDocument($0.reference) }
+            documents.forEach { batch.deleteDocument($0.reference) }
             batch.commit { _ in group.leave() }
         }
 
