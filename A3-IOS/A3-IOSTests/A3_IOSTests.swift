@@ -213,4 +213,48 @@ struct A3_IOSTests {
         #expect(summary.subtotal == 0)
         #expect(summary.total == 0)
     }
+
+    @Test func excludedRoomDoesNotShowInQuote() async throws {
+        let house = House(id: "h1", customerName: "Casey", address: "14 Quiet St")
+        let room = Room(id: "r1", houseId: "h1", name: "Guest Room", includeInQuote: false)
+        let product = Product(
+            id: "p4",
+            name: "Floor Sample",
+            description: "",
+            category: "floor",
+            imageUrl: nil,
+            pricePerSqm: 40,
+            minHeight: nil,
+            maxHeight: nil,
+            minWidth: nil,
+            maxWidth: nil,
+            maxPanelCount: nil,
+            variants: []
+        )
+        let floor = FloorSpace(
+            id: "f3",
+            roomId: "r1",
+            name: "Guest Floor",
+            widthMm: 2000,
+            depthMm: 2000,
+            selectedProductId: "p4",
+            selectedProductName: "Floor Sample",
+            selectedProductVariant: nil,
+            photoBase64: nil,
+            includeInQuote: true
+        )
+
+        let summary = QuoteService.buildQuote(
+            house: house,
+            rooms: [room],
+            windowsByRoomId: [:],
+            floorSpacesByRoomId: ["r1": [floor]],
+            productsById: ["p4": product],
+            discountPercent: 0
+        )
+
+        #expect(summary.lineItems.isEmpty)
+        #expect(summary.subtotal == 0)
+        #expect(summary.total == 0)
+    }
 }
