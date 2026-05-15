@@ -398,13 +398,13 @@ extension RoomDetailViewController: PHPickerViewControllerDelegate {
                         self.roomImageView.image = image
                         FirestoreService.shared.saveRoom(self.room)
                     case .window(var item):
-                        // item is a mutable copy and persisted immediately through the service call below.
+                        // Pattern matching with `var` creates a mutable copy that is then persisted below.
                         item.photoBase64 = encoded
                         FirestoreService.shared.saveWindow(item) { [weak self] in
                             self?.loadData()
                         }
                     case .floor(var item):
-                        // item is a mutable copy and persisted immediately through the service call below.
+                        // Pattern matching with `var` creates a mutable copy that is then persisted below.
                         item.photoBase64 = encoded
                         FirestoreService.shared.saveFloorSpace(item) { [weak self] in
                             self?.loadData()
