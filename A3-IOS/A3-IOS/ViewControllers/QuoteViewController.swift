@@ -151,12 +151,9 @@ final class QuoteViewController: UIViewController {
     }
 
     private func toggleInclude(for lineItem: QuoteLineItem, included: Bool) {
-        if updateWindowInclusion(lineItemId: lineItem.id, included: included) {
-            refreshQuote()
-            return
-        }
-
-        if updateFloorInclusion(lineItemId: lineItem.id, included: included) {
+        let updatedWindow = updateWindowInclusion(lineItemId: lineItem.id, included: included)
+        let updatedFloor = !updatedWindow && updateFloorInclusion(lineItemId: lineItem.id, included: included)
+        if updatedWindow || updatedFloor {
             refreshQuote()
         }
     }

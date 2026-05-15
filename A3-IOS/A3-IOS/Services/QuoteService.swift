@@ -69,10 +69,10 @@ enum QuoteService {
     }
 
     static func shareText(for house: House, summary: QuoteSummary) -> String {
-        var lines = ["Home Quote", "House,\(house.customerName),\(house.address)", ""]
+        var lines = ["Home Quote", "House,\(csvField(house.customerName)),\(csvField(house.address))", ""]
         lines.append("Item,Area(m2),Price/m2,Line Total")
         for item in summary.lineItems {
-            lines.append("\(item.title),\(String(format: "%.2f", item.areaSqm)),\(String(format: "%.2f", item.unitPrice)),\(String(format: "%.2f", item.lineTotal))")
+            lines.append("\(csvField(item.title)),\(String(format: "%.2f", item.areaSqm)),\(String(format: "%.2f", item.unitPrice)),\(String(format: "%.2f", item.lineTotal))")
         }
         lines.append("")
         lines.append("Subtotal,\(String(format: "%.2f", summary.subtotal))")
@@ -80,5 +80,10 @@ enum QuoteService {
         lines.append("Discount Amount,\(String(format: "%.2f", summary.discountAmount))")
         lines.append("Total,\(String(format: "%.2f", summary.total))")
         return lines.joined(separator: "\n")
+    }
+
+    private static func csvField(_ value: String) -> String {
+        let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
+        return "\"\(escaped)\""
     }
 }
