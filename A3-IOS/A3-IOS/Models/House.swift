@@ -1,6 +1,6 @@
 import Foundation
 
-struct House: Codable {
+struct House: Codable, Identifiable {
     var id: String?
     var customerName: String
     var address: String
