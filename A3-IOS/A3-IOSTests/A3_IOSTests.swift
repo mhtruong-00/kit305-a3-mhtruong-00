@@ -137,4 +137,49 @@ struct A3_IOSTests {
         #expect(noDiscount.total == 50)
         #expect(fullDiscount.total == 0)
     }
+
+    @Test func excludedWindowDoesNotAddToQuote() async throws {
+        let house = House(id: "h1", customerName: "Jamie", address: "99 Sample Rd")
+        let room = Room(id: "r1", houseId: "h1", name: "Study")
+        let product = Product(
+            id: "p3",
+            name: "Test Window",
+            description: "",
+            category: "window",
+            imageUrl: nil,
+            pricePerSqm: 80,
+            minHeight: nil,
+            maxHeight: nil,
+            minWidth: nil,
+            maxWidth: nil,
+            maxPanelCount: nil,
+            variants: []
+        )
+        let excludedWindow = WindowMeasurement(
+            id: "w2",
+            roomId: "r1",
+            name: "Window 2",
+            widthMm: 1200,
+            heightMm: 1000,
+            selectedProductId: "p3",
+            selectedProductName: "Test Window",
+            selectedProductVariant: nil,
+            panelCount: 1,
+            photoBase64: nil,
+            includeInQuote: false
+        )
+
+        let summary = QuoteService.buildQuote(
+            house: house,
+            rooms: [room],
+            windowsByRoomId: ["r1": [excludedWindow]],
+            floorSpacesByRoomId: [:],
+            productsById: ["p3": product],
+            discountPercent: 0
+        )
+
+        #expect(summary.lineItems.isEmpty)
+        #expect(summary.subtotal == 0)
+        #expect(summary.total == 0)
+    }
 }
