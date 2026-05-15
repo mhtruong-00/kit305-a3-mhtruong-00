@@ -151,6 +151,7 @@ final class QuoteViewController: UIViewController {
     }
 
     private func toggleInclude(for lineItem: QuoteLineItem, included: Bool) {
+        // A quote line maps to either a window item or a floor-space item, never both.
         let updatedWindow = updateWindowInclusion(lineItemId: lineItem.id, included: included)
         let updatedFloor = !updatedWindow && updateFloorInclusion(lineItemId: lineItem.id, included: included)
         if updatedWindow || updatedFloor {
