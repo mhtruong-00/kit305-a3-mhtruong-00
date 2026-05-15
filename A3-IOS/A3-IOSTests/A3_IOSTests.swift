@@ -257,4 +257,48 @@ struct A3_IOSTests {
         #expect(summary.subtotal == 0)
         #expect(summary.total == 0)
     }
+
+    @Test func zeroDiscountKeepsSubtotalAndTotalSame() async throws {
+        let house = House(id: "h1", customerName: "Morgan", address: "22 Equal St")
+        let room = Room(id: "r1", houseId: "h1", name: "Media Room")
+        let product = Product(
+            id: "p5",
+            name: "Media Floor",
+            description: "",
+            category: "floor",
+            imageUrl: nil,
+            pricePerSqm: 25,
+            minHeight: nil,
+            maxHeight: nil,
+            minWidth: nil,
+            maxWidth: nil,
+            maxPanelCount: nil,
+            variants: []
+        )
+        let floor = FloorSpace(
+            id: "f4",
+            roomId: "r1",
+            name: "Main Floor",
+            widthMm: 2000,
+            depthMm: 1000,
+            selectedProductId: "p5",
+            selectedProductName: "Media Floor",
+            selectedProductVariant: nil,
+            photoBase64: nil,
+            includeInQuote: true
+        )
+
+        let summary = QuoteService.buildQuote(
+            house: house,
+            rooms: [room],
+            windowsByRoomId: [:],
+            floorSpacesByRoomId: ["r1": [floor]],
+            productsById: ["p5": product],
+            discountPercent: 0
+        )
+
+        #expect(summary.subtotal == 50)
+        #expect(summary.discountAmount == 0)
+        #expect(summary.total == 50)
+    }
 }
