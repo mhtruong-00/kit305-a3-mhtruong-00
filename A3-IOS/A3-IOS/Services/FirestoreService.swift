@@ -80,7 +80,26 @@ final class FirestoreService {
 
     func deleteHouse(_ houseId: String, completion: (() -> Void)? = nil) {
 #if canImport(FirebaseFirestore)
-        db.collection("houses").document(houseId).delete { _ in completion?() }
+        db.collection("rooms").whereField("houseId", isEqualTo: houseId).getDocuments { [weak self] snapshot, _ in
+            guard let self else {
+                completion?()
+                return
+            }
+
+            let roomIds = snapshot?.documents.map { $0.documentID } ?? []
+            let group = DispatchGroup()
+
+            for roomId in roomIds {
+                group.enter()
+                self.deleteRoomCascadeInFirestore(roomId: roomId) {
+                    group.leave()
+                }
+            }
+
+            group.notify(queue: .main) {
+                self.db.collection("houses").document(houseId).delete { _ in completion?() }
+            }
+        }
 #else
         var houses = read(key: housesKey, as: [House].self) ?? []
         houses.removeAll { $0.id == houseId }
@@ -166,7 +185,7 @@ final class FirestoreService {
 
     func deleteRoom(_ roomId: String, completion: (() -> Void)? = nil) {
 #if canImport(FirebaseFirestore)
-        db.collection("rooms").document(roomId).delete { _ in completion?() }
+        deleteRoomCascadeInFirestore(roomId: roomId, completion: completion)
 #else
         var rooms = read(key: roomsKey, as: [Room].self) ?? []
         rooms.removeAll { $0.id == roomId }
@@ -377,4 +396,36 @@ final class FirestoreService {
         guard let data = try? encoder.encode(value) else { return }
         UserDefaults.standard.set(data, forKey: key)
     }
+
+#if canImport(FirebaseFirestore)
+    private func deleteRoomCascadeInFirestore(roomId: String, completion: (() -> Void)? = nil) {
+        let group = DispatchGroup()
+
+        group.enter()
+        db.collection("windows").whereField("roomId", isEqualTo: roomId).getDocuments { [weak self] snapshot, _ in
+            guard let self else {
+                group.leave()
+                return
+            }
+            let batch = self.db.batch()
+            snapshot?.documents.forEach { batch.deleteDocument($0.reference) }
+            batch.commit { _ in group.leave() }
+        }
+
+        group.enter()
+        db.collection("floorSpaces").whereField("roomId", isEqualTo: roomId).getDocuments { [weak self] snapshot, _ in
+            guard let self else {
+                group.leave()
+                return
+            }
+            let batch = self.db.batch()
+            snapshot?.documents.forEach { batch.deleteDocument($0.reference) }
+            batch.commit { _ in group.leave() }
+        }
+
+        group.notify(queue: .main) { [weak self] in
+            self?.db.collection("rooms").document(roomId).delete { _ in completion?() }
+        }
+    }
+#endif
 }

@@ -151,26 +151,44 @@ final class QuoteViewController: UIViewController {
     }
 
     private func toggleInclude(for lineItem: QuoteLineItem, included: Bool) {
+        if updateWindowInclusion(lineItemId: lineItem.id, included: included) {
+            refreshQuote()
+            return
+        }
+
+        if updateFloorInclusion(lineItemId: lineItem.id, included: included) {
+            refreshQuote()
+        }
+    }
+
+    private func updateWindowInclusion(lineItemId: String, included: Bool) -> Bool {
         for room in rooms {
             guard let roomId = room.id else { continue }
-            if var windows = windowsByRoom[roomId], let index = windows.firstIndex(where: { ($0.id ?? "") == lineItem.id }) {
-                windows[index].includeInQuote = included
-                let updated = windows[index]
-                windowsByRoom[roomId] = windows
-                FirestoreService.shared.saveWindow(updated)
-                refreshQuote()
-                return
-            }
+            guard var windows = windowsByRoom[roomId],
+                  let index = windows.firstIndex(where: { ($0.id ?? "") == lineItemId }) else { continue }
 
-            if var floors = floorsByRoom[roomId], let index = floors.firstIndex(where: { ($0.id ?? "") == lineItem.id }) {
-                floors[index].includeInQuote = included
-                let updated = floors[index]
-                floorsByRoom[roomId] = floors
-                FirestoreService.shared.saveFloorSpace(updated)
-                refreshQuote()
-                return
-            }
+            windows[index].includeInQuote = included
+            let updated = windows[index]
+            windowsByRoom[roomId] = windows
+            FirestoreService.shared.saveWindow(updated)
+            return true
         }
+        return false
+    }
+
+    private func updateFloorInclusion(lineItemId: String, included: Bool) -> Bool {
+        for room in rooms {
+            guard let roomId = room.id else { continue }
+            guard var floors = floorsByRoom[roomId],
+                  let index = floors.firstIndex(where: { ($0.id ?? "") == lineItemId }) else { continue }
+
+            floors[index].includeInQuote = included
+            let updated = floors[index]
+            floorsByRoom[roomId] = floors
+            FirestoreService.shared.saveFloorSpace(updated)
+            return true
+        }
+        return false
     }
 
     private func showMessage(_ message: String) {
