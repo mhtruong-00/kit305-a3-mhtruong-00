@@ -182,4 +182,35 @@ struct A3_IOSTests {
         #expect(summary.subtotal == 0)
         #expect(summary.total == 0)
     }
+
+    @Test func missingProductDoesNotCreateQuoteLine() async throws {
+        let house = House(id: "h1", customerName: "Taylor", address: "8 Missing Ln")
+        let room = Room(id: "r1", houseId: "h1", name: "Office")
+        let window = WindowMeasurement(
+            id: "w3",
+            roomId: "r1",
+            name: "Window 3",
+            widthMm: 1500,
+            heightMm: 1200,
+            selectedProductId: "missing-product",
+            selectedProductName: "Unknown",
+            selectedProductVariant: nil,
+            panelCount: 1,
+            photoBase64: nil,
+            includeInQuote: true
+        )
+
+        let summary = QuoteService.buildQuote(
+            house: house,
+            rooms: [room],
+            windowsByRoomId: ["r1": [window]],
+            floorSpacesByRoomId: [:],
+            productsById: [:],
+            discountPercent: 0
+        )
+
+        #expect(summary.lineItems.isEmpty)
+        #expect(summary.subtotal == 0)
+        #expect(summary.total == 0)
+    }
 }
